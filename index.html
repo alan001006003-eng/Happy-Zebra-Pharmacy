@@ -33,6 +33,7 @@
             width: 100%;
             max-width: 1000px;
             transition: transform 0.3s ease;
+            z-index: 10;
         }
 
         .grid-minus { grid-column: 1; grid-row: 1; }
@@ -49,7 +50,7 @@
             text-align: center;
         }
 
-        /* 標題區塊 */
+        /* 標題區塊：Logo 移走後，文字完美置中 */
         .header-area {
             background-color: #e5f1e1;
             padding: clamp(15px, 3vh, 25px) 0;
@@ -61,27 +62,29 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: clamp(15px, 3vw, 25px);
         }
 
-        /* 針對斑馬 Logo：加入可點擊的動畫與鼠標提示 */
-        .header-logo {
-            height: clamp(80px, 12vw, 130px);
+        /* 移至左下角的斑馬 Logo 專屬設定 */
+        .corner-logo {
+            position: fixed;
+            bottom: clamp(15px, 4vh, 30px);
+            left: clamp(15px, 4vw, 30px);
+            height: clamp(90px, 18vh, 160px); /* 放大並適應螢幕 */
             width: auto;
             object-fit: contain;
             background-color: transparent;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25));
             cursor: pointer; 
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s;
-            /* 讓手機點擊時不會出現奇怪的高光背景 */
             -webkit-tap-highlight-color: transparent;
+            z-index: 100; /* 確保浮在最上層 */
         }
         
-        .header-logo:hover {
+        .corner-logo:hover {
             transform: scale(1.1) rotate(-5deg);
-            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4));
         }
-        .header-logo:active {
+        .corner-logo:active {
             transform: scale(0.95);
         }
 
@@ -155,7 +158,6 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
             -webkit-tap-highlight-color: transparent;
-            /* 水波紋需要 relative 與 hidden */
             position: relative;
             overflow: hidden;
         }
@@ -189,7 +191,7 @@
         .highlight-orange { color: #f4511e; }
         .highlight-green { color: #2e7d32; }
 
-        /* 自訂防呆彈窗樣式 (手機可用) */
+        /* 自訂防呆彈窗樣式 */
         #customModal {
             display: none;
             position: fixed;
@@ -253,45 +255,53 @@
                 height: clamp(80px, 12vh, 120px);
                 border-radius: 20px;
                 font-size: clamp(40px, 10vw, 60px);
-                border-bottom-width: 8px; /* 原始底部厚度 */
+                border-bottom-width: 8px;
             }
 
-            /* 手機版：模擬真實立體機械按鍵按壓效果 */
             .btn-side:active {
-                transform: translateY(4px) scale(0.97); /* 視覺上往下壓 */
-                border-bottom-width: 4px; /* 厚度變薄 */
+                transform: translateY(4px) scale(0.97); 
+                border-bottom-width: 4px; 
                 box-shadow: inset 0 3px 6px rgba(0,0,0,0.2), 0 2px 5px rgba(0,0,0,0.3);
                 filter: brightness(0.9);
             }
 
-            /* 放大手機版斑馬 Logo */
-            .header-logo {
-                height: clamp(140px, 35vw, 200px); 
-            }
             .header-area {
                 font-size: clamp(26px, 7vw, 40px); 
-                gap: 12px;
                 padding: 15px 10px;
+            }
+
+            /* 手機直立時的左下角 Logo 大小控制 */
+            .corner-logo {
+                height: clamp(80px, 22vw, 130px);
+                bottom: clamp(10px, 2vh, 20px);
+                left: clamp(10px, 2vw, 20px);
             }
         }
 
         /* 橫放扁平螢幕優化 */
         @media (orientation: landscape) and (max-height: 500px) {
             .app-container {
-                /* 手機橫放時整體往上提升 5vh */
                 transform: translateY(-5vh);
             }
-            .header-area { font-size: clamp(24px, 7vh, 36px); padding: 8px 0; gap: 15px; }
+            .header-area { font-size: clamp(24px, 7vh, 36px); padding: 8px 0; }
             .number-container { height: clamp(90px, 40vh, 140px); }
             .number-area { font-size: clamp(80px, 40vh, 120px); }
             .footer-area { font-size: clamp(12px, 3.5vh, 16px); padding: 6px; }
             .btn-side { height: clamp(150px, 70vh, 250px); border-bottom-width: 6px; }
-            /* 大幅放大橫放模式的斑馬 Logo */
-            .header-logo { height: clamp(70px, 22vh, 110px); } 
+            
+            /* 橫放模式的左下角 Logo 大小控制，避免擋到減號太多 */
+            .corner-logo { 
+                height: clamp(60px, 18vh, 100px); 
+                bottom: 10px;
+                left: 10px;
+            } 
         }
     </style>
 </head>
 <body>
+
+    <!-- 獨立於排版之外的左下角斑馬 Logo (懸浮按鈕) -->
+    <img src="logo.png" alt="Logo" class="corner-logo" title="點擊斑馬歸零" onclick="showResetModal()" onerror="this.style.display='none'">
 
     <div class="app-container">
         <!-- 減少按鈕 -->
@@ -303,8 +313,6 @@
         <div class="grid-card">
             <div class="main-card">
                 <div class="header-area">
-                    <!-- 點擊斑馬呼叫自訂防呆彈窗 -->
-                    <img src="logo.png" alt="Logo" class="header-logo" title="點擊斑馬歸零" onclick="showResetModal()" onerror="this.style.display='none'">
                     <span>目前領藥號</span>
                 </div>
                 <div class="number-container" onclick="speakNumber()">
@@ -350,7 +358,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('numberDisplay').innerText = currentNumber;
-            setupRippleEffects(); // 初始化按鈕高質感特效
+            setupRippleEffects(); 
         });
 
         function changeNumber(delta) {
@@ -366,16 +374,13 @@
         // --- 質感按鈕：水波紋與微震動特效 ---
         function setupRippleEffects() {
             document.querySelectorAll('.btn-side').forEach(btn => {
-                // pointerdown 能同時精準捕捉手機觸控與電腦滑鼠點擊
                 btn.addEventListener('pointerdown', function(e) {
                     const button = e.currentTarget;
                     
-                    // 1. 微震動回饋 (增加手機實體觸感)
                     if (navigator.vibrate) {
                         navigator.vibrate(15);
                     }
 
-                    // 2. 建立水波紋 DOM 元素
                     const circle = document.createElement("span");
                     const diameter = Math.max(button.clientWidth, button.clientHeight);
                     const radius = diameter / 2;
@@ -387,7 +392,6 @@
                     circle.style.top = `${e.clientY - rect.top - radius}px`;
                     circle.classList.add("ripple-effect");
 
-                    // 移除舊的水波紋避免堆疊過多
                     const existingRipple = button.querySelector('.ripple-effect');
                     if (existingRipple) {
                         existingRipple.remove();
@@ -395,7 +399,6 @@
 
                     button.appendChild(circle);
 
-                    // 動畫結束後自動清理元素
                     setTimeout(() => circle.remove(), 600);
                 });
             });
