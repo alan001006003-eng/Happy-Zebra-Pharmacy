@@ -27,7 +27,6 @@
         .app-container {
             display: grid;
             grid-template-columns: auto 1fr auto;
-            /* 移除多餘的 row，現在只需要一行 */
             gap: clamp(15px, 3vw, 40px);
             align-items: center;
             justify-items: center;
@@ -71,11 +70,12 @@
             object-fit: contain;
             background-color: transparent;
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
-            cursor: pointer; /* 讓鼠標變成手指 */
+            cursor: pointer; 
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s;
+            /* 讓手機點擊時不會出現奇怪的高光背景 */
+            -webkit-tap-highlight-color: transparent;
         }
         
-        /* 懸停時斑馬會微微放大傾斜，提示這是一個按鈕 */
         .header-logo:hover {
             transform: scale(1.1) rotate(-5deg);
             filter: drop-shadow(0 8px 12px rgba(0,0,0,0.3));
@@ -92,6 +92,7 @@
             overflow: hidden;
             position: relative;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .number-area {
@@ -114,7 +115,6 @@
             100% { transform: translateY(0); opacity: 1; }
         }
 
-        /* 叫號呼吸光暈特效 */
         .calling-glow {
             animation: callingGlow 1.5s ease-in-out infinite alternate;
         }
@@ -153,6 +153,7 @@
             cursor: pointer;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-side:hover { filter: brightness(1.15); }
@@ -167,10 +168,58 @@
         .highlight-orange { color: #f4511e; }
         .highlight-green { color: #2e7d32; }
 
-        /* 手機直放模式優化：由於移除了歸零按鈕，讓加減號各佔 50% 寬度，完美貼齊 */
+        /* 自訂防呆彈窗樣式 (手機可用) */
+        #customModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: #3e2723;
+            border: 4px solid #bda688;
+            border-radius: 24px;
+            padding: 30px 20px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-btn {
+            padding: 14px 0;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            width: 47%;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-cancel { background-color: #5d4037; color: white; }
+        .btn-cancel:active { background-color: #4a332c; transform: scale(0.95); }
+        .btn-confirm { background-color: #e57373; color: white; box-shadow: 0 4px 10px rgba(229, 115, 115, 0.3); }
+        .btn-confirm:active { background-color: #ef5350; transform: scale(0.95); box-shadow: none; }
+
+        /* 手機直放模式優化 */
         @media (orientation: portrait) {
             .app-container {
-                grid-template-columns: 1fr 1fr; /* 變成兩欄 */
+                grid-template-columns: 1fr 1fr; 
                 gap: 15px;
                 max-width: 600px;
             }
@@ -219,8 +268,8 @@
         <div class="grid-card">
             <div class="main-card">
                 <div class="header-area">
-                    <!-- Logo 區塊：加上點擊事件 (onclick) 與懸浮提示 (title) -->
-                    <img src="logo.png" alt="Logo" class="header-logo" title="點擊斑馬歸零" onclick="confirmReset()" onerror="this.style.display='none'">
+                    <!-- 點擊斑馬呼叫自訂防呆彈窗 -->
+                    <img src="logo.png" alt="Logo" class="header-logo" title="點擊斑馬歸零" onclick="showResetModal()" onerror="this.style.display='none'">
                     <span>目前領藥號</span>
                 </div>
                 <div class="number-container" onclick="speakNumber()">
@@ -231,7 +280,7 @@
                 </div>
             </div>
             
-            <!-- 懸停顯示的快捷鍵提示（文字同步更新） -->
+            <!-- 懸停顯示的快捷鍵提示 -->
             <div class="mt-6 text-[#7a6452] text-sm font-bold tracking-widest hidden md:block drop-shadow-sm relative group cursor-help w-full max-w-[400px]">
                 <div class="opacity-70 group-hover:opacity-0 transition-opacity duration-300 absolute w-full text-center pointer-events-none">
                     <i class="fa-regular fa-keyboard mr-1"></i> 將滑鼠移至此處查看快捷鍵
@@ -245,6 +294,18 @@
         <!-- 增加按鈕 -->
         <div class="grid-plus btn-side btn-plus" onclick="changeNumber(1)">
             +
+        </div>
+    </div>
+
+    <!-- 自訂的防呆歸零彈窗 (取代會被手機封鎖的系統 confirm) -->
+    <div id="customModal">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold text-white mb-3 tracking-widest">確定要歸零嗎？</h3>
+            <p class="text-[#d7ccc8] mb-8 font-bold">這將會清除目前的叫號進度，<br>重新從 0 開始。</p>
+            <div style="display: flex; justify-content: space-between; gap: 10px;">
+                <button class="modal-btn btn-cancel" onclick="closeModal()">取消</button>
+                <button class="modal-btn btn-confirm" onclick="executeReset()">確定歸零</button>
+            </div>
         </div>
     </div>
 
@@ -266,16 +327,21 @@
             }
         }
 
-        // 新增防呆歸零確認函數
-        function confirmReset() {
-            // 如果已經是 0，就不需要跳出視窗詢問
-            if (currentNumber === 0) return;
-            
-            // 跳出系統原生確認框
-            if (confirm("確定要將目前的領藥號碼歸零嗎？")) {
-                resetNumber();
-            }
+        // --- 自訂彈窗控制邏輯 ---
+        function showResetModal() {
+            if (currentNumber === 0) return; // 已經是 0 就不跳視窗
+            document.getElementById('customModal').style.display = 'flex';
         }
+
+        function closeModal() {
+            document.getElementById('customModal').style.display = 'none';
+        }
+
+        function executeReset() {
+            closeModal();
+            resetNumber();
+        }
+        // ------------------------
 
         function resetNumber() {
             currentNumber = 0;
@@ -286,7 +352,7 @@
         function updateUI() {
             const display = document.getElementById('numberDisplay');
             display.classList.remove('slide-up-in');
-            void display.offsetWidth; // 強制重繪
+            void display.offsetWidth; 
             
             display.innerText = currentNumber;
             display.classList.add('slide-up-in');
@@ -324,6 +390,13 @@
         // 鍵盤操作支援
         document.addEventListener('keydown', (e) => {
             if (e.repeat) return;
+            
+            // 如果彈窗開著，按 Enter 就執行歸零，按 Esc 就取消
+            if (document.getElementById('customModal').style.display === 'flex') {
+                if (e.key === 'Enter') executeReset();
+                if (e.key === 'Escape') closeModal();
+                return;
+            }
 
             switch(e.key) {
                 case 'ArrowRight':
@@ -341,8 +414,7 @@
                     break;
                 case 'Backspace':
                 case 'Delete':
-                    // 使用防呆的 confirmReset 取代直接歸零
-                    confirmReset();
+                    showResetModal(); // 鍵盤觸發時也一樣呼叫自訂彈窗
                     break;
             }
         });
