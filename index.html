@@ -255,6 +255,10 @@
 
         /* 橫放扁平螢幕優化 */
         @media (orientation: landscape) and (max-height: 500px) {
+            .app-container {
+                /* 手機橫放時整體畫面往上移動，優化視覺重心 */
+                transform: translateY(-8vh);
+            }
             .header-area { font-size: clamp(24px, 7vh, 36px); padding: 8px 0; gap: 15px; }
             .number-container { height: clamp(90px, 40vh, 140px); }
             .number-area { font-size: clamp(80px, 40vh, 120px); }
