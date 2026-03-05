@@ -152,8 +152,11 @@
             align-items: center;
             cursor: pointer;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transition: all 0.2s;
+            transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
             -webkit-tap-highlight-color: transparent;
+            /* 水波紋需要 relative 與 hidden */
+            position: relative;
+            overflow: hidden;
         }
 
         .btn-side:hover { filter: brightness(1.15); }
@@ -164,6 +167,23 @@
 
         .btn-minus { border-bottom: clamp(6px, 1.5vh, 12px) solid #e57373; }
         .btn-plus { border-bottom: clamp(6px, 1.5vh, 12px) solid #81c784; }
+
+        /* 水波紋動畫特效 */
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: rippleAnim 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes rippleAnim {
+            to {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
 
         .highlight-orange { color: #f4511e; }
         .highlight-green { color: #2e7d32; }
@@ -232,7 +252,15 @@
                 height: clamp(80px, 12vh, 120px);
                 border-radius: 20px;
                 font-size: clamp(40px, 10vw, 60px);
-                border-bottom-width: 8px;
+                border-bottom-width: 8px; /* 原始底部厚度 */
+            }
+
+            /* 手機版：模擬真實立體機械按鍵按壓效果 */
+            .btn-side:active {
+                transform: translateY(4px) scale(0.97); /* 視覺上往下壓 */
+                border-bottom-width: 4px; /* 厚度變薄 */
+                box-shadow: inset 0 3px 6px rgba(0,0,0,0.2), 0 2px 5px rgba(0,0,0,0.3);
+                filter: brightness(0.9);
             }
 
             .header-logo {
@@ -297,7 +325,7 @@
         </div>
     </div>
 
-    <!-- 自訂的防呆歸零彈窗 (取代會被手機封鎖的系統 confirm) -->
+    <!-- 自訂的防呆歸零彈窗 -->
     <div id="customModal">
         <div class="modal-content">
             <h3 class="text-2xl font-bold text-white mb-3 tracking-widest">確定要歸零嗎？</h3>
@@ -315,6 +343,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('numberDisplay').innerText = currentNumber;
+            setupRippleEffects(); // 初始化按鈕高質感特效
         });
 
         function changeNumber(delta) {
@@ -327,9 +356,48 @@
             }
         }
 
+        // --- 質感按鈕：水波紋與微震動特效 ---
+        function setupRippleEffects() {
+            document.querySelectorAll('.btn-side').forEach(btn => {
+                // pointerdown 能同時精準捕捉手機觸控與電腦滑鼠點擊
+                btn.addEventListener('pointerdown', function(e) {
+                    const button = e.currentTarget;
+                    
+                    // 1. 微震動回饋 (增加手機實體觸感)
+                    if (navigator.vibrate) {
+                        navigator.vibrate(15);
+                    }
+
+                    // 2. 建立水波紋 DOM 元素
+                    const circle = document.createElement("span");
+                    const diameter = Math.max(button.clientWidth, button.clientHeight);
+                    const radius = diameter / 2;
+
+                    const rect = button.getBoundingClientRect();
+                    
+                    circle.style.width = circle.style.height = `${diameter}px`;
+                    circle.style.left = `${e.clientX - rect.left - radius}px`;
+                    circle.style.top = `${e.clientY - rect.top - radius}px`;
+                    circle.classList.add("ripple-effect");
+
+                    // 移除舊的水波紋避免堆疊過多
+                    const existingRipple = button.querySelector('.ripple-effect');
+                    if (existingRipple) {
+                        existingRipple.remove();
+                    }
+
+                    button.appendChild(circle);
+
+                    // 動畫結束後自動清理元素
+                    setTimeout(() => circle.remove(), 600);
+                });
+            });
+        }
+        // ------------------------------------
+
         // --- 自訂彈窗控制邏輯 ---
         function showResetModal() {
-            if (currentNumber === 0) return; // 已經是 0 就不跳視窗
+            if (currentNumber === 0) return; 
             document.getElementById('customModal').style.display = 'flex';
         }
 
@@ -391,7 +459,6 @@
         document.addEventListener('keydown', (e) => {
             if (e.repeat) return;
             
-            // 如果彈窗開著，按 Enter 就執行歸零，按 Esc 就取消
             if (document.getElementById('customModal').style.display === 'flex') {
                 if (e.key === 'Enter') executeReset();
                 if (e.key === 'Escape') closeModal();
@@ -414,7 +481,7 @@
                     break;
                 case 'Backspace':
                 case 'Delete':
-                    showResetModal(); // 鍵盤觸發時也一樣呼叫自訂彈窗
+                    showResetModal();
                     break;
             }
         });
