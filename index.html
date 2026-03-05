@@ -62,16 +62,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: clamp(10px, 2vw, 20px);
+            gap: clamp(15px, 3vw, 25px);
         }
 
+        /* 針對「透明去背 Logo」進行優化 */
         .header-logo {
-            height: clamp(35px, 5vw, 65px);
+            height: clamp(50px, 8vw, 90px); 
             width: auto;
-            border-radius: 8px;
             object-fit: contain;
-            background-color: #000; /* 若logo有透明背景，可防護 */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            background-color: transparent; /* 確保沒有背景色 */
+            /* 使用 drop-shadow 讓透明圖片的圖案本身有陰影，順著斑馬的輪廓產生立體感 */
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
         }
 
         .number-container {
@@ -231,8 +232,8 @@
         <div class="grid-card">
             <div class="main-card">
                 <div class="header-area">
-                    <!-- 載入您的 Logo，防呆設定: 找不到圖片時自動隱藏 -->
-                    <img src="logo.jpg" alt="Logo" class="header-logo" onerror="this.style.display='none'">
+                    <!-- Logo 區塊：更改為 logo.png 支援透明底 -->
+                    <img src="logo.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
                     <span>目前領藥號</span>
                 </div>
                 <div class="number-container" onclick="speakNumber()">
