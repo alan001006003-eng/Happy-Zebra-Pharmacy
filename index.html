@@ -32,6 +32,7 @@
             justify-items: center;
             width: 100%;
             max-width: 1000px;
+            transition: transform 0.3s ease;
         }
 
         .grid-minus { grid-column: 1; grid-row: 1; }
@@ -276,12 +277,17 @@
 
         /* 橫放扁平螢幕優化 */
         @media (orientation: landscape) and (max-height: 500px) {
-            .header-area { font-size: clamp(20px, 6vh, 32px); padding: 10px 0; }
-            .number-container { height: clamp(100px, 45vh, 150px); }
+            .app-container {
+                /* 手機橫放時整體往上提升 5vh */
+                transform: translateY(-5vh);
+            }
+            .header-area { font-size: clamp(24px, 7vh, 36px); padding: 8px 0; gap: 15px; }
+            .number-container { height: clamp(90px, 40vh, 140px); }
             .number-area { font-size: clamp(80px, 40vh, 120px); }
-            .footer-area { font-size: clamp(12px, 3.5vh, 16px); padding: 8px; }
+            .footer-area { font-size: clamp(12px, 3.5vh, 16px); padding: 6px; }
             .btn-side { height: clamp(150px, 70vh, 250px); border-bottom-width: 6px; }
-            .header-logo { height: clamp(50px, 10vh, 80px); } 
+            /* 大幅放大橫放模式的斑馬 Logo */
+            .header-logo { height: clamp(70px, 22vh, 110px); } 
         }
     </style>
 </head>
