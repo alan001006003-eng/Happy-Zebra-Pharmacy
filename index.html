@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>快樂斑馬藥局 - 叫號系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            /* 您指定的卡其/大地色背景 */
+            background-color: #bda688;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            height: 100dvh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none; 
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            grid-template-rows: auto auto;
+            gap: clamp(15px, 3vw, 40px);
+            align-items: center;
+            justify-items: center;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .grid-minus { grid-column: 1; grid-row: 1; }
+        .grid-card { grid-column: 2; grid-row: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .grid-plus { grid-column: 3; grid-row: 1; }
+        .grid-reset { grid-column: 2; grid-row: 2; }
+
+        .main-card {
+            width: 100%;
+            max-width: 600px;
+            background-color: #3e2723;
+            border-radius: clamp(20px, 4vw, 40px);
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        /* 標題區塊：加入 Flex 排版讓 Logo 與文字完美對齊 */
+        .header-area {
+            background-color: #e5f1e1;
+            padding: clamp(15px, 3vh, 25px) 0;
+            color: #386641;
+            font-size: clamp(32px, 5vw, 56px);
+            font-weight: 900;
+            letter-spacing: 4px;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: clamp(10px, 2vw, 20px);
+        }
+
+        .header-logo {
+            height: clamp(35px, 5vw, 65px);
+            width: auto;
+            border-radius: 8px;
+            object-fit: contain;
+            background-color: #000; /* 若logo有透明背景，可防護 */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .number-container {
+            height: clamp(150px, 35vh, 260px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .number-area {
+            color: white;
+            font-size: clamp(120px, 20vw, 200px);
+            font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600; 
+            letter-spacing: -1px;
+            line-height: 1;
+            text-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .slide-up-in {
+            animation: slideUpIn 0.4s ease-out forwards;
+        }
+        @keyframes slideUpIn {
+            0% { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* 叫號呼吸光暈特效 */
+        .calling-glow {
+            animation: callingGlow 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes callingGlow {
+            0% { 
+                transform: scale(1); 
+                text-shadow: 0 0 15px rgba(212, 175, 55, 0.2); 
+            }
+            100% { 
+                transform: scale(1.05); 
+                text-shadow: 0 0 40px rgba(212, 175, 55, 0.8), 0 0 80px rgba(212, 175, 55, 0.4); 
+                color: #fffde7;
+            }
+        }
+
+        .footer-area {
+            background-color: #d7ccc8;
+            padding: clamp(10px, 2vh, 15px) clamp(5px, 2vw, 15px);
+            font-size: clamp(16px, 2.5vw, 24px);
+            font-weight: bold;
+            color: #333;
+            border-top: 2px solid rgba(0,0,0,0.1);
+        }
+
+        .btn-side {
+            width: clamp(80px, 12vw, 140px);
+            height: clamp(200px, 45vh, 400px);
+            background-color: #3e2723;
+            border-radius: clamp(20px, 4vw, 40px);
+            color: white;
+            font-size: clamp(50px, 8vw, 80px); 
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+
+        .btn-side:hover { filter: brightness(1.15); }
+        .btn-side:active {
+            transform: translateY(5px) scale(0.95);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-minus { border-bottom: clamp(6px, 1.5vh, 12px) solid #e57373; }
+        .btn-plus { border-bottom: clamp(6px, 1.5vh, 12px) solid #81c784; }
+
+        .highlight-orange { color: #f4511e; }
+        .highlight-green { color: #2e7d32; }
+
+        .btn-reset {
+            background-color: #3e2723;
+            color: #d7ccc8;
+            width: clamp(50px, 8vw, 64px);
+            height: clamp(50px, 8vw, 64px);
+            border-radius: 50%;
+            font-size: clamp(20px, 3vw, 24px);
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn-reset:hover {
+            background-color: #5d4037;
+            color: white;
+            transform: scale(1.1);
+        }
+        .btn-reset:active { transform: scale(0.9); }
+
+        /* 手機直放模式 */
+        @media (orientation: portrait) {
+            .app-container {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 15px;
+                max-width: 600px;
+            }
+            .grid-card { grid-column: 1 / 4; grid-row: 1; }
+            .grid-minus { grid-column: 1; grid-row: 2; }
+            .grid-reset { grid-column: 2; grid-row: 2; justify-self: stretch; align-self: stretch; }
+            .grid-plus { grid-column: 3; grid-row: 2; }
+
+            .btn-side {
+                width: 100%;
+                height: clamp(80px, 12vh, 120px);
+                border-radius: 20px;
+                font-size: clamp(40px, 10vw, 60px);
+                border-bottom-width: 8px;
+            }
+            
+            .btn-reset {
+                width: 100%;
+                height: 100%;
+                border-radius: 20px;
+                font-size: clamp(28px, 6vw, 36px);
+                border-bottom: 8px solid #a1887f;
+            }
+            .btn-reset:hover { transform: scale(1.05); }
+        }
+
+        /* 橫放扁平螢幕優化 */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .header-area { font-size: clamp(20px, 6vh, 32px); padding: 10px 0; }
+            .number-container { height: clamp(100px, 45vh, 150px); }
+            .number-area { font-size: clamp(80px, 40vh, 120px); }
+            .footer-area { font-size: clamp(12px, 3.5vh, 16px); padding: 8px; }
+            .btn-side { height: clamp(150px, 70vh, 250px); border-bottom-width: 6px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- 減少按鈕 -->
+        <div class="grid-minus btn-side btn-minus" onclick="changeNumber(-1)">
+            -
+        </div>
+
+        <!-- 主顯示區 -->
+        <div class="grid-card">
+            <div class="main-card">
+                <div class="header-area">
+                    <!-- 載入您的 Logo，防呆設定: 找不到圖片時自動隱藏 -->
+                    <img src="logo.jpg" alt="Logo" class="header-logo" onerror="this.style.display='none'">
+                    <span>目前領藥號</span>
+                </div>
+                <div class="number-container" onclick="speakNumber()">
+                    <div id="numberDisplay" class="number-area">0</div>
+                </div>
+                <div class="footer-area">
+                    領藥號<span class="highlight-orange">到號</span>或<span class="highlight-orange">過號</span>後，請<span class="highlight-green">依序排隊</span>領藥
+                </div>
+            </div>
+            
+            <!-- 懸停顯示的快捷鍵提示 -->
+            <div class="mt-6 text-[#7a6452] text-sm font-bold tracking-widest hidden md:block drop-shadow-sm relative group cursor-help w-full max-w-[400px]">
+                <div class="opacity-70 group-hover:opacity-0 transition-opacity duration-300 absolute w-full text-center pointer-events-none">
+                    <i class="fa-regular fa-keyboard mr-1"></i> 將滑鼠移至此處查看快捷鍵
+                </div>
+                <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center">
+                    [→] 加一號 / [←] 減一號 / [空白鍵] 再次叫號 / [Del] 歸零
+                </div>
+            </div>
+        </div>
+
+        <!-- 增加按鈕 -->
+        <div class="grid-plus btn-side btn-plus" onclick="changeNumber(1)">
+            +
+        </div>
+
+        <!-- 歸零按鈕 -->
+        <div class="grid-reset">
+            <button class="btn-reset" onclick="resetNumber()" title="歸零">
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentNumber = parseInt(localStorage.getItem('happyZebraBasicNumber')) || 0;
+        let isCalling = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('numberDisplay').innerText = currentNumber;
+        });
+
+        function changeNumber(delta) {
+            currentNumber = Math.max(0, currentNumber + delta);
+            localStorage.setItem('happyZebraBasicNumber', currentNumber);
+            updateUI();
+            
+            if (delta > 0) {
+                speakNumber();
+            }
+        }
+
+        function resetNumber() {
+            currentNumber = 0;
+            localStorage.setItem('happyZebraBasicNumber', currentNumber);
+            updateUI();
+        }
+
+        function updateUI() {
+            const display = document.getElementById('numberDisplay');
+            display.classList.remove('slide-up-in');
+            void display.offsetWidth; // 強制重繪
+            
+            display.innerText = currentNumber;
+            display.classList.add('slide-up-in');
+        }
+
+        function speakNumber() {
+            if (isCalling) return;
+            isCalling = true;
+
+            const display = document.getElementById('numberDisplay');
+            display.classList.add('calling-glow');
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(`請 ${currentNumber} 號到櫃檯領藥`);
+                msg.lang = 'zh-TW';
+                msg.rate = 0.95;
+                
+                msg.onend = () => {
+                    setTimeout(() => {
+                        display.classList.remove('calling-glow');
+                        isCalling = false;
+                    }, 800);
+                };
+                
+                window.speechSynthesis.speak(msg);
+            } else {
+                setTimeout(() => {
+                    display.classList.remove('calling-glow');
+                    isCalling = false;
+                }, 2500);
+            }
+        }
+
+        // 鍵盤操作支援
+        document.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+
+            switch(e.key) {
+                case 'ArrowRight':
+                case '+':
+                    changeNumber(1);
+                    break;
+                case 'ArrowLeft':
+                case '-':
+                    changeNumber(-1);
+                    break;
+                case ' ':
+                case 'Enter':
+                    e.preventDefault(); 
+                    speakNumber();
+                    break;
+                case 'Backspace':
+                case 'Delete':
+                    resetNumber();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
